@@ -1,0 +1,73 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: multiport
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multiport-nodejs-app
+  namespace: multiport
+  labels:
+    app: multiport-nodejs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: multiport-nodejs
+  template:
+    metadata:
+      labels:
+        app: multiport-nodejs
+    spec:
+      containers:
+      - name: multiport-nodejs
+        image: paulopatto/multiport-nodejs:v0.1.0
+        ports:
+        - containerPort: 8080
+          name: port-8080
+        - containerPort: 8000
+          name: port-8000
+        - containerPort: 9000
+          name: port-9000
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multiport-nodejs-service
+  namespace: multiport
+spec:
+  type: LoadBalancer
+  selector:
+    app: multiport-nodejs
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http-8080
+  - port: 8000
+    targetPort: 8000
+    name: http-8000
+  - port: 9000
+    targetPort: 9000
+    name: http-9000

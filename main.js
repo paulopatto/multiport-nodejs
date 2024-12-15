@@ -1,5 +1,12 @@
 import express from "express";
 
+import {
+  getSystemMetrics,
+  getV8Metrics,
+  getProcessMetrics,
+} from "./metrics.js";
+
+
 // Create three separate Express apps
 const app8080 = express();
 const app8000 = express();
@@ -29,6 +36,24 @@ app8000.get("/", (req, res) => {
     message: "Hello from port 8000!",
     services: ["metrics", "monitoring"],
   });
+});
+
+app8000.get("/metrics", (req, res) => {
+  try {
+    const metrics = {
+      ...getSystemMetrics(),
+      ...getV8Metrics(),
+      ...getProcessMetrics(),
+      timestamp: new Date().toISOString(),
+    };
+
+    res.json(metrics);
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to retrieve metrics",
+      details: error.message,
+    });
+  }
 });
 
 app9000.get("/", (req, res) => {

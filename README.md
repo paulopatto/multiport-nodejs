@@ -1,13 +1,90 @@
-# sample-nodejs-k8s
+# Multi-Port Node.js Application
 
-A sample application to run in GKE
+## Overview
 
-## Using Ingress NGINX Controller
+This is a multi-port Node.js application designed to demonstrate a microservice-like architecture running on Kubernetes, with support for local development and deployment.
+
+## Pre-requisites
+
+- Node.js (v18.x or later)
+- npm (v9.x or later)
+- Docker
+- Kubernetes CLI (kubectl)
+- Minikube (for local development, optional)
+- Google Cloud SDK (for GKE deployment, optional)
+
+## Local Development Setup
+
+**1. Clone the Repository**
+
+```bash
+git clone https://github.com/paulopatto/multiport-nodejs-app.git
+cd multiport-nodejs-app
+```
+
+**2. Install Dependencies**
+
+```bash
+# Install project dependencies
+npm install
+```
+
+**3. Run Locally**
+
+```bash
+# Run the application
+node app.js # or via nodemon
+
+# Application will be available on ports:
+# - 8080 (Main service)
+# - 8000 (Metrics service)
+# - 9000 (Admin service)
+```
+
+## Docker Build
+
+```bash
+# Build Docker image
+docker build -t multiport-nodejs:v1.0.0 .
+
+# Run Docker container
+docker run -p 8080:8080 -p 8000:8000 -p 9000:9000 multiport-nodejs:v1.0.0
+```
+
+## Kubernetes Deployment
+
+### Local Minikube Deployment
+
+**1. Start Minikube**
+
+```bash
+minikube start
+```
+
+**2. Build and Load Docker Image**
+
+```bash
+# Build image
+docker build -t multiport-nodejs:v1.0.0 .
+
+# Load image to Minikube
+minikube image load multiport-nodejs:v1.0.0
+```
+
+**3. Deploy to Kubernetes**
+
+```bash
+# Apply Kubernetes manifests
+kubectl apply -f k8s-deployment.yaml
+kubectl apply -f k8s-ingress.yaml
+```
+
+### Using Ingress NGINX Controller
 
 Given our architecture's need to manage multiple services independently, a [reverse proxy](https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/) is an ideal choice. Essentially, a reverse proxy acts as a routing server.
 NGINX is a widely used tool for this purpose. To streamline our setup, we'll utilize a pre-built service called nginx-ingress-controller (found at https://github.com/kubernetes/ingress-nginx/). For detailed installation steps, refer to https://kubernetes.github.io/ingress-nginx/deploy/#quick-start.
 
-### Enable ingress nginx controller via minikube addon
+#### Enable ingress nginx controller via minikube addon
 
 ```bash
 minikube addons enable ingress
@@ -19,7 +96,7 @@ or via manifest
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0-beta.0/deploy/static/provider/cloud/deploy.yaml
 ```
 
-### Local testing (with nginx ingress controller)
+#### Local testing (with nginx ingress controller)
 
 Create an ingress resource. The following example uses a host that maps to `localhost`. Apply `nginx-ingress.yaml` with:
 
@@ -82,9 +159,9 @@ kill %2
 kill %3
 ```
 
-## Steps for Deployment on GKE
+## GKE Deployment
 
-1. Authenticate oon gcloud and config project:
+1. Authenticate and Set Project
 
 ```bash
 # Login to GCP
@@ -92,6 +169,9 @@ gcloud auth login
 
 # Set your project
 gcloud config set project $PROJECT_ID
+
+# (Optional)
+gcloud containers clusters create multiport-cluster
 ```
 
 2. Build and push docker image to registry
@@ -101,17 +181,7 @@ docker build -t paulopatto/multiport-nodejs:$VERSION .
 docker push paulopatto/multiport-nodejs:$VERSION
 ```
 
-3. Create GKE cluster
-
-```bash
-# Create a GKE cluster
-gcloud containers clusters create my-cluster \
-  --num-nodes=3 \
-  --zone=us-central1-a \
-  --machine-type=e2-medium
-```
-
-4. Deploy to Kubernetes
+4. Deploy to GKE
 
 ```bash
 kubectl apply -f manifest.k8s.yaml
@@ -130,3 +200,12 @@ kubectls get all -n multiport
 ```
 
 The LoadBalancer service will provide external IP addresses use `kubectl get services` to find the external IPs
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (git checkout -b feature/AmazingFeature)
+3. Make your changes
+4. Commit your changes (git commit -m 'Add some AmazingFeature')
+5. Push to the branch (git push origin feature/AmazingFeature)
+6. Open a Pull Request

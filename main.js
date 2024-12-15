@@ -1,4 +1,4 @@
-const express = require("express");
+import express from "express";
 
 // Create three separate Express apps
 const app8080 = express();
@@ -52,21 +52,31 @@ app9000.get("/health", (req, res) =>
 // Version endpoints
 app8080.get("/version", (req, res) => res.json({ version: "0.1.0" }));
 
-// Start servers
-const server8080 = app8080.listen(8080, () => {
-  console.log("Server running on port 8080");
-});
+// Start servers (using async/await for cleaner shutdown)
+const startServer = async (app, port) => {
+  try {
+    const server = await new Promise((resolve, reject) => {
+      const s = app.listen(port, () => resolve(s));
+      s.on("error", reject);
+    });
+    console.log(`Server running on port ${port}`);
+    return server;
+  } catch (error) {
+    console.error(`Error starting server on port ${port}:`, error);
+    process.exit(1); // Exit the process if a server fails to start
+  }
+};
 
-const server8000 = app8000.listen(8000, () => {
-  console.log("Server running on port 8000");
-});
+async function main() {
+  const server8080 = await startServer(app8080, 8080);
+  const server8000 = await startServer(app8000, 8000);
+  const server9000 = await startServer(app9000, 9000);
 
-const server9000 = app9000.listen(9000, () => {
-  console.log("Server running on port 9000");
-});
+  // Graceful shutdown
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM received. Shutting down gracefully");
+    [server8080, server8000, server9000].forEach((server) => server.close());
+  });
+}
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  console.log("SIGTERM received. Shutting down gracefully");
-  [server8080, server8000, server9000].forEach((server) => server.close());
-});
+main();

@@ -1,0 +1,50 @@
+name: Release and Publish Docker Image
+
+on:
+  release:
+    types: [published] # Run only when a release is published
+
+jobs:
+  build-and-push-docker-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract release tag
+        id: extract_release_tag
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          echo "::set-output name=tag::$VERSION"
+
+      - name: Build and tag Docker image with release version
+        uses: docker/build-push-action@v3
+        with:
+          context: . # Or specify your Dockerfile context if different
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.extract_release_tag.outputs.tag }}
+          push: false
+
+      - name: Build and tag Docker image with 'latest' tag
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          push: false
+
+      - name: Push Docker images
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true # Now push both images
+

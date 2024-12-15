@@ -31,7 +31,7 @@ jobs:
       - name: Build and tag Docker image with release version
         uses: docker/build-push-action@v3
         with:
-          context: . # Or specify your Dockerfile context if different
+          context: .
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.extract_release_tag.outputs.tag }}
           push: false
 
@@ -46,5 +46,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          push: true # Now push both images
-
+          push: true

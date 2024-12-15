@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multiport-ingress
+  namespace: multiport
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: multiport.local.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: multiport-nodejs-service
+            port:
+              number: 8080
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: multiport-nodejs-service
+            port:
+              number: 8000
+      - path: /admin
+        pathType: Prefix
+        backend:
+            service:
+              name: multiport-nodejs-service
+              port:
+                number: 9000

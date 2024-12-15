@@ -4,6 +4,12 @@ on:
   release:
     types: [published] # Run only when a release is published
 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to deploy"
+        required: true
+
 jobs:
   build-and-push-docker-image:
     runs-on: ubuntu-latest
@@ -25,13 +31,21 @@ jobs:
       - name: Extract release tag
         id: extract_release_tag
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          echo "::set-output name=tag::$VERSION"
+
+          if [[ -n "${{ github.event.inputs.tag }}" ]]; then
+            echo "::set-output name=tag::${{ github.event.inputs.tag }}"
+          elif [[ -n "${{ github.event.release.tag_name }}" ]]; then
+            echo "::set-output name=tag::${{ github.event.release.tag_name }}"
+          else
+            echo "::error title=Tag not found::No tag found in either github.event.inputs.tag or github.event.release.tag_name"
+            exit 1 # Exit with error if no tag is found
+          fi
 
       - name: Build and tag Docker image with release version
         uses: docker/build-push-action@v3
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.extract_release_tag.outputs.tag }}
           push: false
 
@@ -39,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
           push: false
 

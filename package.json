@@ -1,15 +1,15 @@
 {
   "name": "sample-nodejs-k8s",
   "version": "0.1.0",
+  "keywords": [],
+  "author": "Paulo Patto <paulopatto@paulopatto.com>",
+  "license": "ISC",
   "description": "A sample application to run in GKE and generate with Claude LLM",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node main.js"
   },
-  "keywords": [],
-  "author": "Paulo Patto <paulopatto@paulopatto.com>",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.21.2"
   },

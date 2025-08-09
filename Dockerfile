@@ -1,14 +1,14 @@
-FROM alpine:3.22.1
+FROM alpine:3.20.7
 
 # Define environment variable
 ENV NODE_ENV=production \
     NODE_NO_WARNNINGS=1 \
     NPM_CONFIG_LOGLEVEL=warn \
     SUPPRESS_NO_CONFIG_WARNINNG=true \ 
-    NODE_VERSION=20.19.4 \ 
-    NPM_VERSION=11.5.1
+    NODE_VERSION=20.15.1-r0 \ 
+    NPM_VERSION=10.9.1-r0
 
-RUN apk add --no-cache "nodejs=${NODE_VERSION}" "npm=${NPM_VERSION}"
+RUN apk add --no-cache "nodejs==${NODE_VERSION}" "npm==${NPM_VERSION}"
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
@@ -22,7 +22,7 @@ RUN npm install --no-optional && \
     apk del npm
 
 # Copy the rest of the application code
-COPY . .
+COPY *.js ./
 
 # Expose the ports the app runs on
 EXPOSE 8080 8000 9000

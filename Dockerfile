@@ -8,7 +8,7 @@ ENV NODE_ENV=production \
     NODE_VERSION=20.19.4 \ 
     NPM_VERSION=11.5.1
 
-RUN apk add --no-cache nodejs@${NODE_VERSION} npm@${NPM_VERSION}
+RUN apk add --no-cache "nodejs=${NODE_VERSION}" "npm=${NPM_VERSION}"
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
